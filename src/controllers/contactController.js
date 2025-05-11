@@ -1,4 +1,4 @@
-import { getAllContacts, getContactByIdService } from '../services/contacts.js'; // Додано імпорт функції getContactByIdService
+import { getAllContacts, getContactByIdService } from '../services/contacts.js'; 
 
 export const getContacts = async (req, res) => {
   try {
