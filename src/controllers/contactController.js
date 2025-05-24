@@ -21,13 +21,11 @@ export const getContacts = async (req, res) => {
     const pageNum = parseInt(page);
     const perPageNum = parseInt(perPage);
 
-    // Підготовка фільтра
     const filter = {};
     if (type) {
       filter.contactType = type;
     }
     if (isFavourite !== undefined) {
-      // Преобразовуємо 'true' / 'false' в булевий тип
       filter.isFavourite = isFavourite === 'true';
     }
 
@@ -129,20 +127,14 @@ export const updateContact = async (req, res, next) => {
   }
 };
 
-export const deleteContact = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const deletedContact = await deleteContactService(contactId);
-    if (!deletedContact) {
-      throw createError(404, 'Contact not found');
-    }
+export const deleteContact = async (req, res) => {
+  const { contactId } = req.params;
 
-    res.status(200).json({
-      status: 200,
-      message: `Contact with id ${contactId} deleted successfully!`,
-      data: deletedContact,
-    });
-  } catch (err) {
-    next(err);
+  const result = await deleteContactService(contactId);
+
+  if (!result) {
+    throw createError(404, 'Contact not found');
   }
+
+  res.status(204).send();
 };
