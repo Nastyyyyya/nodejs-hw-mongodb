@@ -46,10 +46,11 @@ export const getContactByIdService = async (contactId, userId) => {
   }
 };
 
-export const createContactService = async (contactData, userId) => {
-  const newContact = await Contact.create({ ...contactData, userId });
+export const createContactService = async (contactData) => {
+  const newContact = await Contact.create(contactData);
   return newContact;
 };
+
 
 export const patchContactService = async (contactId, updateData, userId) => {
   const updatedContact = await Contact.findOneAndUpdate(

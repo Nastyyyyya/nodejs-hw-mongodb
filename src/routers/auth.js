@@ -8,13 +8,18 @@ import {
 } from '../controllers/auth.js';
 
 import { authenticate } from '../middlewares/authenticate.js';
+import { validateBody } from '../middlewares/validateBody.js';
+import { registerSchema, loginUserSchema } from '../schemas/authSchemas.js';
 
 const router = express.Router();
 
-router.post('/register', ctrlWrapper(registerUser));
-router.post('/login', ctrlWrapper(loginUser));
+router.post(
+  '/register',
+  validateBody(registerSchema),
+  ctrlWrapper(registerUser)
+);
+router.post('/login', validateBody(loginUserSchema), ctrlWrapper(loginUser));
 router.post('/refresh', ctrlWrapper(refreshSession));
-
 router.post('/logout', authenticate, ctrlWrapper(logoutUser));
 
 export default router;

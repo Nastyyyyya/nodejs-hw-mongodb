@@ -46,7 +46,7 @@ export const loginService = async ({ email, password }) => {
     Date.now() + 30 * 24 * 60 * 60 * 1000
   );
 
-  await Session.create({
+  const session = await Session.create({
     userId: user._id,
     accessToken,
     refreshToken,
@@ -54,11 +54,12 @@ export const loginService = async ({ email, password }) => {
     refreshTokenValidUntil,
   });
 
-  return { accessToken, refreshToken, user };
+  return { accessToken, refreshToken, sessionId: session._id };
 };
 
-export const refreshService = async (refreshToken) => {
+export const refreshService = async (refreshToken, sessionId) => {
   if (!refreshToken) throw createError(401, 'No refresh token provided');
+  if (!sessionId) throw createError(401, 'No session ID provided');
 
   let payload;
   try {
@@ -68,12 +69,13 @@ export const refreshService = async (refreshToken) => {
   }
 
   const session = await Session.findOne({
+    _id: sessionId,
     userId: payload.userId,
     refreshToken,
   });
   if (!session) throw createError(403, 'Session not found');
 
-  await Session.findOneAndDelete({ userId: payload.userId });
+  await Session.deleteOne({ _id: sessionId });
 
   const accessToken = jwt.sign(
     { userId: payload.userId },
@@ -91,7 +93,7 @@ export const refreshService = async (refreshToken) => {
     Date.now() + 30 * 24 * 60 * 60 * 1000
   );
 
-  await Session.create({
+  const newSession = await Session.create({
     userId: payload.userId,
     accessToken,
     refreshToken: newRefreshToken,
@@ -99,18 +101,22 @@ export const refreshService = async (refreshToken) => {
     refreshTokenValidUntil,
   });
 
-  return { accessToken };
+  return {
+    accessToken,
+    refreshToken: newRefreshToken,
+    sessionId: newSession._id,
+  };
 };
 
-export const logoutService = async (refreshToken) => {
-  if (!refreshToken) {
-    throw createError(401, 'No refresh token provided');
+export const logoutService = async (sessionId) => {
+  if (!sessionId) {
+    throw createError(401, 'No session ID provided');
   }
 
-  const session = await Session.findOne({ refreshToken });
+  const session = await Session.findById(sessionId);
   if (!session) {
     throw createError(404, 'Session not found');
   }
 
-  await Session.deleteOne({ _id: session._id });
+  await Session.deleteOne({ _id: sessionId });
 };

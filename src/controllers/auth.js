@@ -12,7 +12,7 @@ export const registerUser = async (req, res, next) => {
     delete userObj.password;
 
     res.status(201).json({
-      status: 'success',
+      status: 201,
       message: 'Successfully registered a user!',
       data: userObj,
     });
@@ -23,7 +23,9 @@ export const registerUser = async (req, res, next) => {
 
 export const loginUser = async (req, res, next) => {
   try {
-    const { accessToken, refreshToken, user } = await loginService(req.body);
+    const { accessToken, refreshToken, sessionId } = await loginService(
+      req.body
+    );
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -31,12 +33,17 @@ export const loginUser = async (req, res, next) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
+    res.cookie('sessionId', sessionId, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({
-      status: 'success',
+      status: 200,
       message: 'Successfully logged in an user!',
       data: {
         accessToken,
-        user,
       },
     });
   } catch (error) {
@@ -47,10 +54,28 @@ export const loginUser = async (req, res, next) => {
 export const refreshSession = async (req, res, next) => {
   try {
     const refreshToken = req.cookies.refreshToken;
-    const { accessToken } = await refreshService(refreshToken);
+    const sessionId = req.cookies.sessionId;
+
+    const {
+      accessToken,
+      refreshToken: newRefreshToken,
+      sessionId: newSessionId,
+    } = await refreshService(refreshToken, sessionId);
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie('sessionId', newSessionId, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
     res.status(200).json({
-      status: 'success',
+      status: 200,
       message: 'Successfully refreshed a session!',
       data: {
         accessToken,
@@ -63,13 +88,12 @@ export const refreshSession = async (req, res, next) => {
 
 export const logoutUser = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
-    await logoutService(refreshToken);
+    const sessionId = req.cookies.sessionId;
 
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      sameSite: 'strict',
-    });
+    await logoutService(sessionId);
+
+    res.clearCookie('refreshToken');
+    res.clearCookie('sessionId');
 
     res.status(204).send();
   } catch (error) {
