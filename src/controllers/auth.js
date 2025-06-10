@@ -76,7 +76,7 @@ export const refreshSession = async (req, res, next) => {
 
     res.status(200).json({
       status: 200,
-      message: 'Successfully refreshed a session!',
+      message: 'Successfully refreshed session!',
       data: {
         accessToken,
       },
@@ -95,7 +95,11 @@ export const logoutUser = async (req, res, next) => {
     res.clearCookie('refreshToken');
     res.clearCookie('sessionId');
 
-    res.status(204).send();
+    res.status(204).json({
+      status: 204,
+      message: 'Successfully logged out',
+      data: null,
+    });
   } catch (error) {
     next(error);
   }

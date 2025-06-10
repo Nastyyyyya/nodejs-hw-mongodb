@@ -114,9 +114,7 @@ export const logoutService = async (sessionId) => {
   }
 
   const session = await Session.findById(sessionId);
-  if (!session) {
-    throw createError(404, 'Session not found');
-  }
+  if (!session) throw createError(401, 'Session not found');
 
-  await Session.deleteOne({ _id: sessionId });
+  await Session.findByIdAndDelete(sessionId);
 };

@@ -1,13 +1,12 @@
 import Contact from '../models/contactModel.js';
 
-export const getAllContacts = async (
+export const getAllContactsService = async ({
   page,
   perPage,
   sortBy,
   sortOrder,
-  userId,
-  filter = {}
-) => {
+  filter,
+}) => {
   try {
     const sortOptions = {};
     if (sortBy) {
@@ -16,14 +15,12 @@ export const getAllContacts = async (
 
     const skip = (page - 1) * perPage;
 
-    const query = { ...filter, userId };
-
-    const contactsPromise = Contact.find(query)
+    const contactsPromise = Contact.find(filter)
       .sort(sortOptions)
       .skip(skip)
       .limit(perPage);
 
-    const totalItemsPromise = Contact.countDocuments(query);
+    const totalItemsPromise = Contact.countDocuments(filter);
 
     const [contacts, totalItems] = await Promise.all([
       contactsPromise,
@@ -50,7 +47,6 @@ export const createContactService = async (contactData) => {
   const newContact = await Contact.create(contactData);
   return newContact;
 };
-
 
 export const patchContactService = async (contactId, updateData, userId) => {
   const updatedContact = await Contact.findOneAndUpdate(
