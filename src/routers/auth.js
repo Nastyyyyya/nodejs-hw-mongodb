@@ -7,7 +7,6 @@ import {
   refreshSession,
 } from '../controllers/auth.js';
 
-import { authenticate } from '../middlewares/authenticate.js';
 import { validateBody } from '../middlewares/validateBody.js';
 import { registerSchema, loginUserSchema } from '../schemas/authSchemas.js';
 
@@ -20,6 +19,6 @@ router.post(
 );
 router.post('/login', validateBody(loginUserSchema), ctrlWrapper(loginUser));
 router.post('/refresh', ctrlWrapper(refreshSession));
-router.post('/logout', authenticate, ctrlWrapper(logoutUser));
+router.post('/logout', ctrlWrapper(logoutUser));
 
 export default router;
